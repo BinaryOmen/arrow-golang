@@ -1,0 +1,16 @@
+# github.com/apache/arrow/go/arrow v0.0.0-20201205205739-8bf8ccdeca27
+## explicit
+github.com/apache/arrow/go/arrow
+github.com/apache/arrow/go/arrow/array
+github.com/apache/arrow/go/arrow/arrio
+github.com/apache/arrow/go/arrow/bitutil
+github.com/apache/arrow/go/arrow/decimal128
+github.com/apache/arrow/go/arrow/endian
+github.com/apache/arrow/go/arrow/float16
+github.com/apache/arrow/go/arrow/internal/arrjson
+github.com/apache/arrow/go/arrow/internal/cpu
+github.com/apache/arrow/go/arrow/internal/debug
+github.com/apache/arrow/go/arrow/memory
+# golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543
+golang.org/x/xerrors
+golang.org/x/xerrors/internal
