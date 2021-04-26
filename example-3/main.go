@@ -95,7 +95,7 @@ func main() {
 
 	structFields := []arrow.Field{
 		{
-			Name: "StreamName",
+			Name: "Geek",
 			Type: arrow.StructOf(fields[1:]...),
 		},
 	}
