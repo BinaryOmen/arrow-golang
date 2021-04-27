@@ -6,6 +6,8 @@ import (
 	"reflect"
 
 	"github.com/apache/arrow/go/arrow"
+	"github.com/apache/arrow/go/arrow/array"
+	"github.com/apache/arrow/go/arrow/memory"
 )
 
 func DetectType(data interface{}) string {
@@ -67,7 +69,7 @@ func createArrowFields(data []interface{}) []arrow.Field {
 
 func main() {
 
-	//pool := memory.NewGoAllocator()
+	pool := memory.NewGoAllocator()
 
 	/*
 		type Geek struct {
@@ -95,21 +97,13 @@ func main() {
 	jsonString := `
 	[
 	{
-		"Name": "Adheip",
-		"Age": 24,
-		"Country": {
-			"Code": 24
-		},
-		"City": {
-			"Punjab": "India"
-		}
+		"Name": "Adheip"
 	}
 	]`
 
 	var data []interface{}
 
 	json.Unmarshal([]byte(jsonString), &data)
-	//fmt.Println(createArrowFields(data)[1:])
 
 	structFields := []arrow.Field{
 		{
@@ -117,62 +111,77 @@ func main() {
 			Type: arrow.StructOf(createArrowFields(data)[1:]...),
 		},
 	}
-	fmt.Println(structFields)
-	/*
-			fields := []arrow.Field{
-				{Name: "Geek", Type: arrow.StructOf([]arrow.Field{
-					{
-						Name: "Name", Type: arrow.BinaryTypes.String,
-					},
-					{
-						Name: "Age", Type: arrow.PrimitiveTypes.Float64,
-					},
-				}...)},
-			}
 
+	schema := arrow.NewSchema(structFields, nil)
 
-		schema := arrow.NewSchema(structFields, nil)
+	bld := array.NewRecordBuilder(pool, schema)
+	defer bld.Release()
 
-		bld := array.NewRecordBuilder(pool, schema)
-		defer bld.Release()
-
+	if structFields[0].Type.Name() == "struct" {
 		sb := bld.Field(0).(*array.StructBuilder)
 		defer sb.Release()
-
-		f1b := sb.FieldBuilder(0).(*array.StringBuilder)
-		defer f1b.Release()
-
-		f2b := sb.FieldBuilder(1).(*array.Float64Builder)
-		defer f2b.Release()
-
-		sb.AppendValues([]bool{true})
-		f1b.AppendValues([]string{"Adheip"}, nil)
-		f2b.AppendValues([]float64{24}, nil)
-
-		rec1 := bld.NewRecord()
-		defer rec1.Release()
-
-		sb.AppendValues([]bool{true})
-		f1b.AppendValues([]string{"Nitish"}, nil)
-		f2b.AppendValues([]float64{32}, nil)
-
-		rec2 := bld.NewRecord()
-		defer rec2.Release()
-
-		tbl := array.NewTableFromRecords(schema, []array.Record{rec1, rec2})
-		defer tbl.Release()
-
-		tr := array.NewTableReader(tbl, 5)
-		defer tr.Release()
-
-		n := 0
-		for tr.Next() {
-			rec := tr.Record()
-			for i, col := range rec.Columns() {
-				fmt.Printf("rec[%d][%q]: %v\n", n, rec.ColumnName(i), col)
-			}
-			n++
+		values := make([]interface{}, reflect.ValueOf(structFields[0]).NumField())
+		for i := 0; i < reflect.ValueOf(structFields[0]).NumField(); i++ {
+			values[i] = reflect.ValueOf(structFields[0]).Field(i).Interface()
+			fmt.Println(DetectType(values[i]))
 		}
+
+	}
+	/*
+					fields := []arrow.Field{
+						{Name: "Geek", Type: arrow.StructOf([]arrow.Field{
+							{
+								Name: "Name", Type: arrow.BinaryTypes.String,
+							},
+							{
+								Name: "Age", Type: arrow.PrimitiveTypes.Float64,
+							},
+						}...)},
+					}
+		/
+
+				schema := arrow.NewSchema(structFields, nil)
+
+				bld := array.NewRecordBuilder(pool, schema)
+				defer bld.Release()
+
+				sb := bld.Field(0).(*array.StructBuilder)
+				defer sb.Release()
+
+				f1b := sb.FieldBuilder(0).(*array.StringBuilder)
+				defer f1b.Release()
+
+				f2b := sb.FieldBuilder(1).(*array.Float64Builder)
+				defer f2b.Release()
+
+				sb.AppendValues([]bool{true})
+				f1b.AppendValues([]string{"Adheip"}, nil)
+				f2b.AppendValues([]float64{24}, nil)
+
+				rec1 := bld.NewRecord()
+				defer rec1.Release()
+
+				sb.AppendValues([]bool{true})
+				f1b.AppendValues([]string{"Nitish"}, nil)
+				f2b.AppendValues([]float64{32}, nil)
+
+				rec2 := bld.NewRecord()
+				defer rec2.Release()
+
+				tbl := array.NewTableFromRecords(schema, []array.Record{rec1, rec2})
+				defer tbl.Release()
+
+				tr := array.NewTableReader(tbl, 5)
+				defer tr.Release()
+
+				n := 0
+				for tr.Next() {
+					rec := tr.Record()
+					for i, col := range rec.Columns() {
+						fmt.Printf("rec[%d][%q]: %v\n", n, rec.ColumnName(i), col)
+					}
+					n++
+				}
 	*/
 
 }
